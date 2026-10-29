@@ -63,6 +63,9 @@ class NativeBridge {
   static Future<void> setLimit(int limit) =>
       _control.invokeMethod('setLimit', {'limit': limit});
 
+  static Future<Map<String, String>> getViewIds() async =>
+      await _control.invokeMapMethod<String, String>('getViewIds') ?? const {};
+
   static Future<void> openAccessibilitySettings() =>
       _control.invokeMethod('openAccessibilitySettings');
 
@@ -116,6 +119,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _refresh();
   }
 
+  // Hidden diagnostics: view IDs seen on the last Instagram/YouTube screen.
+  Future<void> _showViewIds(BuildContext context) async {
+    final ids = await NativeBridge.getViewIds();
+    final text = ids.entries
+        .map((e) => '== ${e.key} ==\n${e.value.isEmpty ? '(nothing yet)' : e.value}')
+        .join('\n\n');
+    if (!context.mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF111111),
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 8, 0),
+                child: Row(
+                  children: [
+                    const Text('Last seen view IDs'),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: text));
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Copy'),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: SelectableText(text,
+                      style: const TextStyle(
+                          fontFamily: 'monospace', fontSize: 12, height: 1.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = _state;
@@ -129,8 +179,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ThumbBreak',
-                  style: TextStyle(color: muted, letterSpacing: 1.5)),
+              GestureDetector(
+                onLongPress: () => _showViewIds(context),
+                child: Text('ThumbBreak',
+                    style: TextStyle(color: muted, letterSpacing: 1.5)),
+              ),
               if (!s.serviceEnabled) ...[
                 const SizedBox(height: 24),
                 _EnableBanner(onTap: NativeBridge.openAccessibilitySettings),

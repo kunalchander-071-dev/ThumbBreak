@@ -41,6 +41,16 @@ class Store(context: Context) {
         prefs.edit().putInt(key, prefs.getInt(key, 0) + 1).apply()
     }
 
+    // Diagnostics live in a separate file so writing them doesn't fire the live-count listener.
+    private val debugPrefs: SharedPreferences =
+        context.applicationContext.getSharedPreferences(DEBUG_PREFS, Context.MODE_PRIVATE)
+
+    fun saveViewIds(app: TargetApp, ids: String) =
+        debugPrefs.edit().putString(app.name, ids).apply()
+
+    fun viewIds(): Map<String, String> =
+        TargetApp.entries.associate { it.name to (debugPrefs.getString(it.name, null) ?: "") }
+
     fun toMap(): Map<String, Any> {
         rollover()
         return mapOf(
@@ -52,6 +62,7 @@ class Store(context: Context) {
 
     companion object {
         private const val PREFS = "thumbbreak"
+        private const val DEBUG_PREFS = "thumbbreak_debug"
         private const val KEY_DATE = "date"
         private const val KEY_INSTAGRAM = "count_instagram"
         private const val KEY_YOUTUBE = "count_youtube"

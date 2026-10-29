@@ -12,7 +12,13 @@ enum class TargetApp(val packageName: String, val viewerIds: List<String>) {
     ),
     YOUTUBE(
         "com.google.android.youtube",
-        listOf("reel_recycler", "reel_player_page_container"),
+        listOf(
+            "reel_recycler",
+            "reel_player_page_container",
+            "reel_watch_player",
+            "reel_player_underlay",
+            "reel_time_bar",
+        ),
     );
 
     companion object {

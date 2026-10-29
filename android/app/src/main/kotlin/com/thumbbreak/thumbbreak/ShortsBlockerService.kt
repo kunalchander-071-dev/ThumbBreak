@@ -21,6 +21,7 @@ class ShortsBlockerService : AccessibilityService() {
     private var lastCountAt = 0L
     private var lastCheckAt = 0L
     private var lastBlockAt = 0L
+    private var lastCaptureAt = 0L
 
     override fun onServiceConnected() {
         store = Store(this)
@@ -46,6 +47,10 @@ class ShortsBlockerService : AccessibilityService() {
         lastCheckAt = now
 
         val root = rootInActiveWindow ?: return
+        if (now - lastCaptureAt > CAPTURE_INTERVAL_MS) {
+            lastCaptureAt = now
+            captureViewIds(root, app)
+        }
         if (!isViewerVisible(root, app)) {
             leaveViewer()
             return
@@ -73,6 +78,24 @@ class ShortsBlockerService : AccessibilityService() {
                 .any { it.isVisibleToUser }
         }
 
+    /**
+     * Diagnostics: remember which view IDs were on the latest screen of each app, so the
+     * correct Reels/Shorts IDs can be found from inside ThumbBreak (long-press the title).
+     * Only IDs are stored — no on-screen text.
+     */
+    private fun captureViewIds(root: AccessibilityNodeInfo, app: TargetApp) {
+        val ids = sortedSetOf<String>()
+        val queue = ArrayDeque<AccessibilityNodeInfo>().apply { add(root) }
+        var visited = 0
+        while (queue.isNotEmpty() && visited < MAX_CAPTURE_NODES) {
+            val node = queue.removeFirst()
+            visited++
+            node.viewIdResourceName?.let { ids.add(it.substringAfter(":id/")) }
+            for (i in 0 until node.childCount) node.getChild(i)?.let(queue::add)
+        }
+        store.saveViewIds(app, ids.joinToString("\n"))
+    }
+
     private fun leaveViewer() {
         inViewer = false
         badge.hide()
@@ -98,5 +121,7 @@ class ShortsBlockerService : AccessibilityService() {
         private const val SWIPE_DEBOUNCE_MS = 800L
         private const val CHECK_THROTTLE_MS = 300L
         private const val BLOCK_COOLDOWN_MS = 1500L
+        private const val CAPTURE_INTERVAL_MS = 2000L
+        private const val MAX_CAPTURE_NODES = 600
     }
 }

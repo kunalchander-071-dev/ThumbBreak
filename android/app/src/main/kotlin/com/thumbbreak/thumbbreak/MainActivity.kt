@@ -28,6 +28,7 @@ class MainActivity : FlutterActivity() {
                     store.limit = call.argument<Int>("limit") ?: store.limit
                     result.success(null)
                 }
+                "getViewIds" -> result.success(store.viewIds())
                 "openAccessibilitySettings" -> {
                     startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                     result.success(null)
