@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_description">ThumbBreak counts the Instagram Reels and YouTube Shorts you watch and closes the player once you reach your daily limit. It only reads Instagram and YouTube screens, and nothing leaves your phone.</string>
+</resources>

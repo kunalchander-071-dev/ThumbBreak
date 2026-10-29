@@ -1,0 +1,25 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+android/key.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secrets — never commit
+*.keystore
+*.jks
+*service-account*.json
+google-services.json
